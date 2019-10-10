@@ -62,8 +62,6 @@ const REQ_INIT_DATA_RESP = 2030
 const START_GAME = 1035
 const START_GAME_RESP = 2035
 
-<<<<<<< HEAD
-=======
 //改变用户
 const CHANGE_USER = 1040
 const CHANGE_USER_RESP = 2040
@@ -72,7 +70,6 @@ const CHANGE_USER_RESP = 2040
 const OFFLINE_MSG = 1050
 const OFFLINE_MSG_RESP = 2050
 
->>>>>>> 15af34ba88809cb2dcdc83c13fa744a378e935f1
 //签到类型
 const ROBOT_TYPE = 1
 const HUMAN_TYPE = 2
@@ -81,6 +78,18 @@ const STATUS_ONLIE_READY = 1
 const STATUS_ONLIE_DONG = 1
 const STATUS_ONLIN_IDLE = 2
 const STATUS_OFFLINE = 3
+
+const ROBOT_PREFIX = "机器人"
+
+/*
+	发送消息命令
+*/
+type CardInfo struct {
+	CardId string `json:"cardid"`
+	Count  int    `json:"count"`
+	SCore  int    `json:"score"`
+	Name   string `json:"name"`
+}
 
 /*
 	发送消息命令
@@ -131,11 +140,7 @@ type Player struct {
 	CurrSCore  int
 	PlayerType int
 	CurrCard   string
-<<<<<<< HEAD
-	PlayerType int
-=======
 	ToNickName string
->>>>>>> 15af34ba88809cb2dcdc83c13fa744a378e935f1
 	Status     int
 	LoginTime  time.Time
 	Avatar     string
