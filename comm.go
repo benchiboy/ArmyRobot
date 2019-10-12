@@ -80,6 +80,7 @@ const STATUS_ONLIN_IDLE = 2
 const STATUS_OFFLINE = 3
 
 const ROBOT_PREFIX = "机器人"
+const JUNQI = "junqi"
 
 /*
 	发送消息命令

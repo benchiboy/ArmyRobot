@@ -15,7 +15,9 @@ import (
 
 var GId2DataMap = &sync.Map{}
 
-var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
+var addr = flag.String("addr", "127.0.0.1:9080", "http service address")
+
+//var addr = flag.String("addr", "172.17.0.3:9080", "http service address")
 var upgrader = websocket.Upgrader{} // use default options
 
 /*
@@ -66,7 +68,6 @@ func reqInitData(c *websocket.Conn, cmdMsg CommandMsg) error {
 		 成功返回空
 */
 func initData(userId string, msgBuf string) error {
-	log.Println("=======>", userId, msgBuf)
 	m := make(map[string]CardInfo)
 	if err := json.Unmarshal([]byte(msgBuf), &m); err != nil {
 		log.Println(err)
@@ -88,7 +89,7 @@ func initData(userId string, msgBuf string) error {
 	结果：出错返回错误
 		 成功返回空
 */
-func getCard(userId string) CardInfo {
+func getCard(userId string) (error, CardInfo) {
 	cardObj, ok := GId2DataMap.Load(userId)
 	if !ok {
 		log.Println(userId, "缓存信息没有获取到")
@@ -97,13 +98,33 @@ func getCard(userId string) CardInfo {
 	if !ret {
 		log.Println("类型断言错误")
 	}
-	index := rand.Intn(len(cardList))
-	card := cardList[index]
-	log.Println("出牌之前,牌列表长度==>", len(cardList))
+	index := 0
+	var card CardInfo
+	if len(cardList) == 0 {
+		log.Println("CardList is null")
+		return fmt.Errorf("Empty card"), card
+	}
+	for {
+		index = rand.Intn(len(cardList))
+		card = cardList[index]
+		if len(cardList) > 1 {
+			if card.CardId == JUNQI {
+				log.Println(" 机器人提前出军旗，做调整处理")
+				continue
+			} else {
+				break
+			}
+		} else {
+			break
+		}
+	}
+	log.Println("出牌之前的数量=>", len(cardList))
 	cardList = append(cardList[:index], cardList[index+1:]...)
-	log.Println("出牌之后,牌列表长度==>", len(cardList), card)
+	log.Println("出牌之后的数量=>", len(cardList), card.Name)
+
 	GId2DataMap.Store(userId, cardList)
-	return card
+	fmt.Println(card)
+	return nil, card
 }
 
 /*
@@ -128,9 +149,11 @@ func replyYes(c *websocket.Conn, cmdMsg CommandMsg) error {
 }
 
 /*
-	机器人出牌
+	功能：机器人出牌
+	结果：出错返回错误
+		 成功返回空
 */
-func playCard(c *websocket.Conn, card CardInfo, cmdMsg CommandMsg) {
+func playCard(c *websocket.Conn, card CardInfo, cmdMsg CommandMsg) error {
 	var newcmdMsg CommandMsg
 	newcmdMsg.Type = PLAY_CARD
 	newcmdMsg.FromId = cmdMsg.ToId
@@ -139,7 +162,23 @@ func playCard(c *websocket.Conn, card CardInfo, cmdMsg CommandMsg) {
 	newcmdMsg.SCore = card.SCore
 	newcmdMsg.Message = card.Name
 	msg, _ := json.Marshal(newcmdMsg)
-	c.WriteMessage(websocket.TextMessage, msg)
+	err := c.WriteMessage(websocket.TextMessage, msg)
+	if err != nil {
+		log.Println("write:", err)
+		return err
+	}
+	return nil
+}
+
+/*
+	功能：对对战结果进行处理，如果战胜对方，出牌需要放回池子中
+	结果：出错返回错误
+		 成功返回空
+*/
+func playResult(c *websocket.Conn, card CardInfo, cmdMsg CommandMsg) error {
+	//var newcmdMsg CommandMsg
+
+	return nil
 }
 
 /*
@@ -154,32 +193,39 @@ func procHandle(c *websocket.Conn) {
 			continue
 		}
 		var cmdMsg CommandMsg
+		var cmdMsgResp CommandMsgResp
 		if err = json.Unmarshal(message, &cmdMsg); err != nil {
 			log.Println("Unmarshal:", err)
 			continue
 		}
 		switch cmdMsg.Type {
 		case PLAY_CARD_RESP:
-			log.Println("收到出牌指令的应答", cmdMsg.Message)
+			log.Println("出牌结果应答", cmdMsg)
+
 		case SIGN_IN_RESP:
 			log.Println(cmdMsg.FromId + "签到成功...")
-			reqInitData(c, cmdMsg)
 		case REQ_PLAY:
 			log.Println("收到求战请求")
 			replyYes(c, cmdMsg)
 		case REQ_PLAY_YES_RESP:
 			log.Println("收到求战同意的应答")
 		case REQ_PLAY_CARD:
-			log.Println("收到出牌指令:", cmdMsg.Message, cmdMsg.ToId)
-			card := getCard(cmdMsg.ToId)
-			playCard(c, card, cmdMsg)
+			log.Println("收到出牌指令:")
+			err, card := getCard(cmdMsg.ToId)
+			if err == nil {
+				playCard(c, card, cmdMsg)
+			}
 		case REQ_INIT_DATA_RESP:
 			log.Println("接受服务器的初始数据:", cmdMsg.FromId, cmdMsg.ToId)
 			initData(cmdMsg.ToId, cmdMsg.Message)
 		case START_GAME:
 			log.Println("开始游戏:", cmdMsg)
+			reqInitData(c, cmdMsg)
 		case OFFLINE_MSG:
 			log.Println("下线通知:", cmdMsg)
+		case QUERY_RESULT_RESP:
+			json.Unmarshal(message, &cmdMsgResp)
+			log.Println("双方的对战结果:", cmdMsgResp.Role, cmdMsgResp.Winner)
 		}
 	}
 }
