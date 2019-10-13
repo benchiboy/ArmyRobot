@@ -85,7 +85,16 @@ const JUNQI = "junqi"
 /*
 	发送消息命令
 */
-type CardInfo struct {
+type CardList struct {
+	Total int    `json:"total"`
+	Index int    `json:"index"`
+	List  []Card `json:"list"`
+}
+
+/*
+	发送消息命令
+*/
+type Card struct {
 	CardId string `json:"cardid"`
 	Count  int    `json:"count"`
 	SCore  int    `json:"score"`
