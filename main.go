@@ -29,9 +29,10 @@ func initSiginin(c *websocket.Conn, index int) error {
 	log.Println("=========>Init Robot Signin============>")
 	var cmdMsg CommandMsg
 	cmdMsg.Type = ROBOT_SIGN_IN
-	cmdMsg.FromId = ROBOT_PREFIX + fmt.Sprintf("%d", index)
-	cmdMsg.NickName = ROBOT_PREFIX + fmt.Sprintf("%d", index)
-	cmdMsg.Message = cmdMsg.NickName + " Signin..."
+	userName := ROBOT_PREFIX + fmt.Sprintf("%d", index) + "号"
+	cmdMsg.FromId = userName
+	cmdMsg.NickName = userName
+	cmdMsg.Message = "123456"
 	writeMsg, err := json.Marshal(cmdMsg)
 	err = c.WriteMessage(websocket.TextMessage, writeMsg)
 	if err != nil {
@@ -237,6 +238,9 @@ func procHandle(c *websocket.Conn) {
 		case START_GAME:
 			log.Println("开始游戏:", cmdMsg)
 			reqInitData(c, cmdMsg)
+
+		case CHANGE_USER:
+			log.Println("用户切换了用户:", cmdMsg)
 		case OFFLINE_MSG:
 			log.Println("下线通知:", cmdMsg)
 		case QUERY_RESULT_RESP:
@@ -251,7 +255,7 @@ func main() {
 	log.Println("=============>ArmyRobot Starting....")
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	for i := 0; i < 1; i++ {
+	for i := 1; i < 3; i++ {
 		u := url.URL{Scheme: "ws", Host: *addr, Path: "/echo"}
 		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
