@@ -110,25 +110,30 @@ type Card struct {
 	发送消息命令
 */
 type CommandMsg struct {
-	Type     int    `json:"type"`
-	FromId   string `json:"fromid"`
-	ToId     string `json:"toid"`
-	NickName string `json:"nickname"`
-	Message  string `json:"message"`
-	Role     string `json:"role"`
-	SCore    int    `json:"score"`
+	Type    int    `json:"type"`
+	FromId  string `json:"fromid"`
+	ToType  int    `json:"totype"`
+	ToId    string `json:"toid"` //1: 点对点 2:是点对群
+	PlayNo  int64  `json:"playno"`
+	BatchNo string `json:"batchno"`
+	Message string `json:"message,omitempty"`
+	Role    string `json:"role,omitempty"`
+	SCore   int    `json:"score,omitempty"`
+	Winner  string `json:"winner,omitempty"`
+	Status  string `json:"status,omitempty"`
 }
 
 type CommandMsgResp struct {
-	Type       int    `json:"type"`
-	Success    bool   `json:"success"`
-	Role       string `json:"role"`
-	FromId     string `json:"fromid"`
-	ToId       string `json:"toid"`
-	Winner     string `json:"winner"`
-	Status     string `json:"status"`
-	Message    string `json:"message"`
-	AnotherMsg string `json:"anothermsg"`
+	Type    int    `json:"type"`
+	BatchNo string `json:"batchno,omitempty"`
+	PlayNo  int64  `json:"playno"`
+	Success bool   `json:"success"`
+	FromId  string `json:"fromid,omitempty"`
+	ToId    string `json:"toid,omitempty"`
+	Role    string `json:"role,omitempty"`
+	Winner  string `json:"winner,omitempty"`
+	Status  string `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 /*
