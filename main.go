@@ -15,9 +15,9 @@ import (
 
 var GId2DataMap = &sync.Map{}
 
-var addr = flag.String("addr", "127.0.0.1:9080", "http service address")
+//var addr = flag.String("addr", "127.0.0.1:9080", "http service address")
 
-//var addr = flag.String("addr", "172.17.0.3:9080", "http service address")
+var addr = flag.String("addr", "172.17.0.3:9080", "http service address")
 var upgrader = websocket.Upgrader{} // use default options
 
 /*
@@ -160,6 +160,8 @@ func playCard(c *websocket.Conn, card Card, cmdMsg CommandMsg) error {
 	newcmdMsg.ToId = cmdMsg.FromId
 	newcmdMsg.SCore = card.SCore
 	newcmdMsg.Message = card.Name
+	newcmdMsg.BatchNo = cmdMsg.BatchNo
+	newcmdMsg.PlayNo = cmdMsg.PlayNo
 	msg, _ := json.Marshal(newcmdMsg)
 	err := c.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
